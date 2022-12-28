@@ -8,20 +8,27 @@ import (
 	"github.com/go-kit/kit/log"
 )
 
-var ReposErr = errors.New("Unable to handle Repo Request")
+var RepoErr = errors.New("Unable to handle Repo Request")
 
 type repo struct {
 	db     *sql.DB
 	logger log.Logger
 }
 
-// CreateUser implements Repository
+func NewRepo(db *sql.DB, logger log.Logger) Repository {
+	return &repo{
+		db:     db,
+		logger: log.With(logger, "repo", "sql"),
+	}
+}
+
 func (repo *repo) CreateUser(ctx context.Context, user User) error {
-	sql := `INSERT INTO users(id,email,password)
-			VALUES($1,$2,$3)`
+	sql := `
+		INSERT INTO users (id, email, password)
+		VALUES ($1, $2, $3)`
 
 	if user.Email == "" || user.Password == "" {
-		return ReposErr
+		return RepoErr
 	}
 
 	_, err := repo.db.ExecContext(ctx, sql, user.ID, user.Email, user.Password)
@@ -31,21 +38,12 @@ func (repo *repo) CreateUser(ctx context.Context, user User) error {
 	return nil
 }
 
-// GetUser implements Repository
 func (repo *repo) GetUser(ctx context.Context, id string) (string, error) {
 	var email string
-	sql := `SELECT email FROM users WHERE id = $1`
-	err := repo.db.QueryRow(sql, id).Scan(&email)
+	err := repo.db.QueryRow("SELECT email FROM users WHERE id=$1", id).Scan(&email)
 	if err != nil {
-		return "", ReposErr
+		return "", RepoErr
 	}
 
 	return email, nil
-}
-
-func NewRepo(db *sql.DB, logger log.Logger) Repository {
-	return &repo{
-		db:     db,
-		logger: log.With(logger, "repo", "sql"),
-	}
 }

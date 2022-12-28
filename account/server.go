@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	httptransport "github.com/go-kit/kit/transport/http"
 )
 
 func NewHTTPServer(ctx context.Context, endpoints Endpoints) http.Handler {
@@ -21,7 +21,7 @@ func NewHTTPServer(ctx context.Context, endpoints Endpoints) http.Handler {
 	r.Methods("GET").Path("/user/{id}").Handler(httptransport.NewServer(
 		endpoints.GetUser,
 		decodeEmailReq,
-		encodeResponse,   
+		encodeResponse,
 	))
 
 	return r
